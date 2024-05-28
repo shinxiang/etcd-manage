@@ -14,11 +14,10 @@ etcd-manage 是一个用go编写的etcd管理工具，具有友好的界面(类�
 
 # 2. 设置代理
 go env -w GO111MODULE=on
-go env GOPROXY=https://goproxy.cn,direct
+go env -w GOPROXY=https://goproxy.cn,direct
 
 # 3. 打包、运行
 go mod tidy
-go mod download
 go build .
 
 ./etcd-manage
