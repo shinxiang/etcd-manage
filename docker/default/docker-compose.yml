@@ -1,0 +1,67 @@
+version: "3"
+
+services:
+  etcd:
+    image: quay.io/coreos/etcd:v3.5.4
+    container_name: etcd
+    command: /usr/local/bin/etcd
+    restart: always
+    networks:
+      - deng
+    ports:
+      - "2379:2379"
+      - "2380:2380"
+    volumes:
+      - "/data/etcd:/etcd-data"
+      - "/etc/localtime:/etc/localtime:ro"
+    environment:
+      # 指定版本
+      ETCDCTL_API: 3
+      # 日志类型
+      ETCD_LOGGER: zap
+      # 存储路径
+      ETCD_DATA_DIR: /etcd-data
+  
+      # 节点名称
+      ETCD_NAME: node1
+      # 创建集群唯一TOKEN
+      INITIAL_CLUSTER_TOKEN: etcd-v3-cluster
+      # 参数指集群不用密码可以连接
+      ALLOW_NONE_AUTHENTICATION: "yes"
+
+      # 对外公告该节点客户端监听地址
+      ETCD_ADVERTISE_CLIENT_URLS: http://192.168.1.88:2379
+      # 本地对外提供服务的地址
+      ETCD_LISTEN_CLIENT_URLS: http://0.0.0.0:2379
+
+      # 该节点同伴监听地址
+      ETCD_INITIAL_ADVERTISE_PEER_URLS: http://0.0.0.0:2380
+      # 和其他节点通信的地址
+      ETCD_LISTEN_PEER_URLS: http://0.0.0.0:2380
+  
+      # 初始化集群所有节点列表（逗号隔开）
+      ETCD_INITIAL_CLUSTER: node1=http://0.0.0.0:2380
+      # 集群初始化状态（新建集群时为new）
+      ETCD_INITIAL_CLUSTER_STATE: new
+      # 启用K-V键值自动压缩存盘
+      ETCD_AUTO_COMPACTION_RETENTION: 1
+
+
+  etcd-manage:
+    image: shinxiang/etcd-manage:latest
+    container_name: etcd-manage
+    restart: always
+    networks:
+      - deng
+    ports:
+      - "8800:10280"
+    volumes:
+      - "./bin/logs/:/app/logs"
+      - "./bin/config/cfg.toml:/app/config/cfg.toml"
+      - "/etc/localtime:/etc/localtime:ro"
+
+
+networks:
+  deng:
+    external: true
+
